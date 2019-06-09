@@ -57,7 +57,7 @@ INIT    JSR CLEAR
         STX SPR0_X
 
         ; SET SHIP INITIAL Y
-        LDY #229
+        LDY POS
         STY SPR0_Y
 
         ; SET SPRITE POINTER
@@ -96,12 +96,21 @@ CNT     ; === WAIT UNTIL THE END OF TIMES
         JMP CNT
 
 GAMEIRQ 
-        ; TODO UPDATE GAME STATE HERE
+        ; WHEEEEEEEEEEEE
+        LDA POS
+        CLC
+        SBC ACCEL
+        STA POS
+        STA SPR0_Y
+     
 
         ; RESET IRQ FLAG
         ASL IRQFLAG 
         ; LET MACHINE HANDLE OTHER IRQS
         JMP IRQFINISH 
+
+POS     BYTE 229
+ACCEL   BYTE 5
 
         ; SHIP SPRITE
 SHIP    BYTE 0,255,0
