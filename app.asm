@@ -96,21 +96,32 @@ CNT     ; === WAIT UNTIL THE END OF TIMES
         JMP CNT
 
 GAMEIRQ 
-        ; WHEEEEEEEEEEEE
+        LDA ACCEL
+        CMP #0
+        BEQ NEXT
+
+JUMP
         LDA POS
         CLC
         SBC ACCEL
         STA POS
         STA SPR0_Y
-     
 
+        DEC ACCEL
+        CPX #0
+        BNE NEXT
+STOP
+        LDA #0
+        STA ACCEL
+        
+NEXT
         ; RESET IRQ FLAG
         ASL IRQFLAG 
         ; LET MACHINE HANDLE OTHER IRQS
         JMP IRQFINISH 
 
 POS     BYTE 229
-ACCEL   BYTE 5
+ACCEL   BYTE 15
 
         ; SHIP SPRITE
 SHIP    BYTE 0,255,0
