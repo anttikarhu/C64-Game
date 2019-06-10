@@ -138,14 +138,11 @@ UPDATE
         STA POS
         STA SPR0_Y
 
-        ; SLOW DOWN
+        ; SLOW DOWN, BUT SLOWLY DESCEND
+        LDA ACCEL
+        CMP #254
+        BEQ BOTTOM
         DEC ACCEL
-        LDA ACCEL 
-        CMP #238
-        BNE BOTTOM
-        LDA #0
-        STA ACCEL
-        STA FLYING
 
 BOTTOM
         ; IF ALREADY AT THE BOTTOM, STOP
@@ -166,8 +163,9 @@ NEXT
         ; LET MACHINE HANDLE OTHER IRQS
         JMP IRQFINISH 
 
+        ; VARIABLES
 POS     BYTE 229
-ACCEL   BYTE 15
+ACCEL   BYTE 0
 FLYING  BYTE 0
 PREVJOY BYTE 0
 CURRJOY BYTE 0
