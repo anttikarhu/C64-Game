@@ -29,6 +29,8 @@ IRQCTRL         = $D01A
 IRQFLAG         = $D019
 IRQFINISH       = $EA31
 
+JOYSTICK_B      = $DC01
+
 INIT    JSR CLEAR
 
         ; === BACKGROUND AND FRAME COLORS TO BLACK AND GRAY
@@ -95,26 +97,70 @@ LD_SHIP LDA SHIP,X
 CNT     ; === WAIT UNTIL THE END OF TIMES
         JMP CNT
 
-GAMEIRQ 
-        LDA ACCEL
+GAMEIRQ
+        ; IF SHIP IS ACCELERATING UP, DO NOTHING FOR NOW
+        LDA FLYING
+        CMP #1
+        BEQ UPDATE
+
+        ; IF JOYSTICK NOT PRESSED UP, JUST UPDATE SHIP
+        LDA JOYSTICK_B
+        STA CURRJOY
+        LDA #%00000001
+        BIT CURRJOY
+        BNE UPDATE
+
+        ; IF PRESSED UP IN PREVIOUS ROUND, JUST UPDATE SHIP
+        LDA #%00000001
+        BIT PREVJOY
+        BEQ UPDATE
+
+JUMP    LDA #1
+        STA FLYING
+        LDA #15
+        STA ACCEL
+        
+UPDATE
+        ; SKIP IF NOT MOVING
+        LDA FLYING
         CMP #0
         BEQ NEXT
 
-JUMP
+        ; IF MOVING UP, CONTINUE UPDATE
+        LDA FLYING
+        CMP #1
+        BNE NEXT
+        
+        ; MOVE SHIP
         LDA POS
         CLC
         SBC ACCEL
         STA POS
         STA SPR0_Y
 
+        ; SLOW DOWN
         DEC ACCEL
-        CPX #0
-        BNE NEXT
-STOP
+        LDA ACCEL 
+        CMP #238
+        BNE BOTTOM
         LDA #0
         STA ACCEL
-        
+        STA FLYING
+
+BOTTOM
+        ; IF ALREADY AT THE BOTTOM, STOP
+        LDA POS
+        CMP #229
+        BNE NEXT
+        LDA #0
+        STA ACCEL
+        STA FLYING
+
 NEXT
+        ; SAVE PREVIOUS JOYSTICK STATUS
+        LDA CURRJOY
+        STA PREVJOY
+
         ; RESET IRQ FLAG
         ASL IRQFLAG 
         ; LET MACHINE HANDLE OTHER IRQS
@@ -122,6 +168,9 @@ NEXT
 
 POS     BYTE 229
 ACCEL   BYTE 15
+FLYING  BYTE 0
+PREVJOY BYTE 0
+CURRJOY BYTE 0
 
         ; SHIP SPRITE
 SHIP    BYTE 0,255,0
