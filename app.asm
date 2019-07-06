@@ -177,7 +177,27 @@ FLYING  BYTE 0
 PREVJOY BYTE 0
 CURRJOY BYTE 0
 
-; GT, OR GREATER THAN FUNCTION ==================================================
+; MACRO: PUSHES REGISTERS TO STACK IN ORDER A, X, Y ============================
+defm    M_PUSH_REGISTERS
+        PHA
+        TXA
+        PHA
+        TYA
+        PHA
+        endm
+;===============================================================================
+
+; MACRO: POPS REGISTERS FROM STACK IN ORGER Y, X, A ============================
+defm    M_POP_REGISTERS
+        PLA
+        TAY
+        PLA
+        TAX
+        PLA
+        endm
+; ==============================================================================
+
+; GT, OR GREATER THAN FUNCTION =================================================
 GT
         ; SUBROUTINE THAT CHECK IF VALUE IN X IS GREATER THAN VALUE IN A.
         ; LEAVES THE RESULT TO A (0 IF NOT, AND 1 IF WAS).
@@ -187,10 +207,7 @@ GT
         STX GT_X_ST ; STORE X AND A,
         STA GT_A_ST
 
-        TXA ; PUSH X AND Y TO STACK TO BE A GOOD CITIZEN,
-        PHA
-        TYA
-        PHA
+        M_PUSH_REGISTERS ; PUSH REGISTERS TO STACK TO BE A GOOD CITIZEN,
 
         LDA GT_A_ST ; AND GET A BACK FROM MEMORY
 
@@ -207,12 +224,9 @@ GT_WAS_GT
         STA GT_A_ST
         JMP GT_END
 
-GT_END  PLA ; GET Y, AND X FROM THE STACK,
-        TAY
-        PLA
-        TAX
+GT_END  M_POP_REGISTERS ; GET REGISTERS FROM THE STACK,
 
-        LDA GT_A_ST ; LOAD RESULT BACK TO ACCUMULATOR
+        LDA GT_A_ST ; LOAD RESULT BACK TO ACCUMULATOR,
 
         RTS ; AND END THE SUBROUTINE.
 GT_X_ST BYTE 0
