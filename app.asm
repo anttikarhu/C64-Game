@@ -31,6 +31,8 @@ IRQFINISH       = $EA31
 
 JOYSTICK_B      = $DC01
 
+JUMP_FORCE      = #13
+
 INIT    JSR CLEAR
 
         ; === BACKGROUND AND FRAME COLORS TO BLACK AND GRAY
@@ -117,7 +119,7 @@ GAMEIRQ
 
 JUMP    LDA #1
         STA FLYING
-        LDA #15
+        LDA JUMP_FORCE
         STA ACCEL
         
 UPDATE
@@ -146,9 +148,14 @@ UPDATE
 
 BOTTOM
         ; IF ALREADY AT THE BOTTOM, STOP
-        LDA POS
-        CMP #229
+        LDX POS
+        LDA #228
+        JSR GT
+        CMP #1
         BNE NEXT
+        BEQ AT_BOTTOM
+
+AT_BOTTOM
         LDA #0
         STA ACCEL
         STA FLYING
@@ -169,6 +176,48 @@ ACCEL   BYTE 0
 FLYING  BYTE 0
 PREVJOY BYTE 0
 CURRJOY BYTE 0
+
+; GT, OR GREATER THAN FUNCTION ==================================================
+GT
+        ; SUBROUTINE THAT CHECK IF VALUE IN X IS GREATER THAN VALUE IN A.
+        ; LEAVES THE RESULT TO A (0 IF NOT, AND 1 IF WAS).
+        ; X REGISTER = VALUE TO BE CHECKED FOR GREATNESS
+        ; A REGISTER = VALUE THE X IS COMPARED TO
+
+        STX GT_X_ST ; STORE X AND A,
+        STA GT_A_ST
+
+        TXA ; PUSH X AND Y TO STACK TO BE A GOOD CITIZEN,
+        PHA
+        TYA
+        PHA
+
+        LDA GT_A_ST ; AND GET A BACK FROM MEMORY
+
+        CMP GT_X_ST
+        BCS GT_WAS_LE
+        BCC GT_WAS_GT
+
+GT_WAS_LE
+        LDA #0
+        STA GT_A_ST
+        JMP GT_END
+GT_WAS_GT
+        LDA #1
+        STA GT_A_ST
+        JMP GT_END
+
+GT_END  PLA ; GET Y, AND X FROM THE STACK,
+        TAY
+        PLA
+        TAX
+
+        LDA GT_A_ST ; LOAD RESULT BACK TO ACCUMULATOR
+
+        RTS ; AND END THE SUBROUTINE.
+GT_X_ST BYTE 0
+GT_A_ST BYTE 0
+; ==============================================================================
 
         ; SHIP SPRITE
 SHIP    BYTE 0,255,0
