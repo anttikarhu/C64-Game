@@ -206,12 +206,10 @@ GT
 
         STX GT_X_ST ; STORE X AND A,
         STA GT_A_ST
-
         M_PUSH_REGISTERS ; PUSH REGISTERS TO STACK TO BE A GOOD CITIZEN,
-
         LDA GT_A_ST ; AND GET A BACK FROM MEMORY
 
-        CMP GT_X_ST
+        CMP GT_X_ST ; CHECK IF X IS GREATER THAN A
         BCS GT_WAS_LE
         BCC GT_WAS_GT
 
@@ -225,10 +223,9 @@ GT_WAS_GT
         JMP GT_END
 
 GT_END  M_POP_REGISTERS ; GET REGISTERS FROM THE STACK,
-
         LDA GT_A_ST ; LOAD RESULT BACK TO ACCUMULATOR,
-
         RTS ; AND END THE SUBROUTINE.
+
 GT_X_ST BYTE 0
 GT_A_ST BYTE 0
 ; ==============================================================================
